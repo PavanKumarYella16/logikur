@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CoreMarket Real-Time Reactive Orchestrator</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f6f9; margin: 0; padding: 25px; color: #333; }
+        .main-layout { max-width: 1400px; margin: 0 auto; display: grid; grid-template-columns: 1.4fr 1fr; gap: 25px; }
+        .card { background: white; padding: 22px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-bottom: 20px; }
+        h2 { margin-top: 0; color: #1e293b; border-bottom: 2px solid #f1f5f9; padding-bottom: 8px; font-size: 20px; }
+        h3 { margin: 20px 0 10px 0; color: #1d4ed8; font-size: 14px; text-transform: uppercase; letter-spacing: 0.5px; border-left: 3px solid #2563eb; padding-left: 8px; }
+        
+        .catalog-scroll { max-height: 750px; overflow-y: auto; padding-right: 8px; }
+        .catalog-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 20px; }
+        
+        .product-item { border: 1px solid #e2e8f0; padding: 14px; border-radius: 10px; display: flex; flex-direction: column; justify-content: space-between; background: #fff; transition: border-color 0.2s, box-shadow 0.2s; }
+        .product-item.active-selected { border-color: #2563eb; box-shadow: 0 4px 12px rgba(37, 99, 235, 0.08); background: #f8fafc; }
+        
+        .product-top { display: flex; align-items: flex-start; gap: 10px; }
+        .product-title { font-weight: bold; font-size: 14px; color: #0f172a; line-height: 1.4; }
+        .product-meta { font-size: 12px; color: #64748b; margin-top: 2px; }
+        
+        .product-controls-footer { display: flex; align-items: center; justify-content: space-between; margin-top: 15px; padding-top: 10px; border-top: 1px dashed #e2e8f0; }
+        .product-price { font-size: 15px; font-weight: bold; color: #0f172a; min-width: 70px; }
+        .right-interactive-cluster { display: flex; align-items: center; gap: 12px; }
+
+        .item-checkbox { width: 18px; height: 18px; cursor: pointer; accent-color: #2563eb; margin: 0; }
+        
+        .qty-container { display: flex; align-items: center; border: 1px solid #cbd5e1; border-radius: 6px; background: #f1f5f9; overflow: hidden; height: 28px; box-sizing: border-box; }
+        .qty-btn { background: #e2e8f0; border: none; width: 28px; height: 100%; font-weight: bold; cursor: pointer; font-size: 14px; color: #334155; display: flex; align-items: center; justify-content: center; user-select: none; }
+        .qty-btn:hover { background: #cbd5e1; }
+        .qty-val { background: #ffffff; padding: 0 12px; font-weight: bold; font-size: 13px; height: 100%; display: flex; align-items: center; justify-content: center; min-width: 20px; color: #0f172a; border-left: 1px solid #cbd5e1; border-right: 1px solid #cbd5e1; }
+
+        .progress-wrapper { margin-top: 12px; }
+        .progress-text { font-size: 12px; color: #cbd5e1; display: flex; justify-content: space-between; margin-bottom: 4px; }
+        .progress-bg { background: #1e293b; border-radius: 20px; height: 8px; width: 100%; overflow: hidden; border: 1px solid #334155; }
+        .progress-bar { background: #10b981; width: 0%; height: 100%; transition: width 0.4s ease; }
+
+        .form-group { margin-bottom: 12px; }
+        label { display: block; margin-bottom: 4px; font-weight: 600; color: #475569; font-size: 13px; }
+        input, select { width: 100%; padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 6px; box-sizing: border-box; font-size: 13px; }
+        
+        .result-box { display: block; margin-top: 15px; padding: 15px; border-radius: 8px; line-height: 1.5; font-size: 13px; }
+        .neutral-state { background-color: #f8fafc; border: 1px solid #cbd5e1; color: #64748b; text-align: center; font-style: italic; }
+        .success { background-color: #ecfdf5; border: 1px solid #10b981; color: #065f46; }
+        .fallback-warning { background-color: #fffbeb; border: 1px solid #f59e0b; color: #78350f; }
+        .error { background-color: #fef2f2; border: 1px solid #ef4444; color: #991b1b; }
+        .badge { display: inline-block; padding: 2px 6px; background: #2563eb; color: white; border-radius: 4px; font-weight: bold; }
+        .invoice-line { display: flex; justify-content: space-between; margin-bottom: 6px; }
+        .strategy-banner { border-left: 4px solid #64748b; padding: 12px; border-radius: 6px; font-size: 12px; font-weight: 600; color: #334155; margin-bottom: 12px; background: #f8fafc; }
+    </style>
+</head>
+<body>
+
+    <div style="text-align: center; margin-bottom: 25px;">
+        <h1 style="margin: 0; color: #0f172a;">🏢 CoreMarket Automated Matrix Hub</h1>
+        <p style="color: #64748b; margin-top: 5px; font-size: 14px;">Reactive Logistics Ledger — Fully Event-Driven Telemetry Updates Without Clicking</p>
+    </div>
+
+    <div class="main-layout">
+        
+        <div class="card">
+            <h2>📦 Production Stock Catalog</h2>
+            <div class="catalog-scroll">
+                <h3>💻 Category A: Computing & Displays</h3>
+                <div class="catalog-grid" id="cat-computing"></div>
+                <h3>🖱️ Category B: Computer Peripherals</h3>
+                <div class="catalog-grid" id="cat-peripherals"></div>
+                <h3>🔌 Category C: Office Infrastructure</h3>
+                <div class="catalog-grid" id="cat-infrastructure"></div>
+                <h3>🏢 Category D: Heavy Furniture & Facilities</h3>
+                <div class="catalog-grid" id="cat-furniture"></div>
+            </div>
+        </div>
+
+        <div>
+            <div class="card" style="background: #0f172a; color: white;">
+                <h2 style="color: white; border-bottom-color: #1e293b;">📊 Live Basket Telemetry</h2>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 10px;">
+                    <div>
+                        <span style="font-size: 11px; color: #94a3b8; display: block; text-transform: uppercase;">Active Subtotal:</span>
+                        <strong style="font-size: 22px; color: #10b981;" id="display-subtotal">€0.00</strong>
+                    </div>
+                    <div>
+                        <span style="font-size: 11px; color: #94a3b8; display: block; text-transform: uppercase;">Active Weight:</span>
+                        <strong style="font-size: 22px; color: #3b82f6;" id="display-weight">0.00 kg</strong>
+                    </div>
+                </div>
+
+                <div class="progress-wrapper">
+                    <div class="progress-text">
+                        <span id="progress-status-msg">Add items to check shipping rewards</span>
+                        <span id="progress-percent-msg">0%</span>
+                    </div>
+                    <div class="progress-bg">
+                        <div class="progress-bar" id="tier-progress-fill"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>🚚 Operational Parameters</h2>
+                <div class="form-group">
+                    <label for="postal_code">Destination Post Code</label>
+                    <input type="text" id="postal_code" value="10117" maxlength="5" onkeyup="recalculateAndSyncMatrix()">
+                </div>
+                <div class="form-group">
+                    <label for="sla">Required SLA Classification</label>
+                    <select id="sla" onchange="recalculateAndSyncMatrix()">
+                        <option value="Standard">Standard Delivery (Economy)</option>
+                        <option value="Express">Express Kurier (Premium)</option>
+                    </select>
+                </div>
+                <label>Autonomous Pricing Strategy</label>
+                <div id="auto-strategy-banner" class="strategy-banner">No items currently selected.</div>
+            </div>
+
+            <div class="card" style="min-height: 180px;">
+                <h2>🖥️ Live Relational Database Matrix</h2>
+                <div id="result" class="result-box neutral-state">
+                    🛋️ Awaiting selection layout input updates...
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const MasterInventory = [
+            { id: 1, name: "24-Inch IPS Office Monitor", price: 18.45, weight: 4.20, cat: "computing", qty: 0, checked: false },
+            { id: 2, name: "34-Inch Ultrawide Curved Display", price: 24.99, weight: 7.80, cat: "computing", qty: 0, checked: false },
+            { id: 3, name: "4K Designer Reference Display", price: 22.15, weight: 9.10, cat: "computing", qty: 0, checked: false },
+            { id: 4, name: "Intel i7 Developer Workstation Mini", price: 19.80, weight: 3.50, cat: "computing", qty: 0, checked: false },
+            { id: 5, name: "Ryzen 9 Extreme Build Server PC", price: 23.50, weight: 12.40, cat: "computing", qty: 0, checked: false },
+            { id: 6, name: "M3 Pro Ultra-Thin Laptop 14-Inch", price: 25.00, weight: 1.60, cat: "computing", qty: 0, checked: false },
+            { id: 7, name: "Ergonomic Silent USB Mouse", price: 2.15, weight: 0.15, cat: "peripherals", qty: 0, checked: false },
+            { id: 8, name: "Bluetooth Multi-Device Keyboard", price: 5.40, weight: 0.60, cat: "peripherals", qty: 0, checked: false },
+            { id: 9, name: "Mechanical Tactile Gaming Keyboard", price: 11.95, weight: 1.30, cat: "peripherals", qty: 0, checked: false },
+            { id: 10, name: "4K Ultra-HD Wide Angle Webcam", price: 7.90, weight: 0.25, cat: "peripherals", qty: 0, checked: false },
+            { id: 11, name: "Active Noise-Cancelling Headset", price: 14.50, weight: 0.35, cat: "peripherals", qty: 0, checked: false },
+            { id: 12, name: "USB-C Studio Condenser Microphone", price: 9.25, weight: 0.85, cat: "peripherals", qty: 0, checked: false },
+            { id: 13, name: "10-Port Thunderbolt 4 Docking Station", price: 16.10, weight: 0.50, cat: "infrastructure", qty: 0, checked: false },
+            { id: 14, name: "Gigabit Ethernet 8-Port Switch", price: 3.99, weight: 0.90, cat: "infrastructure", qty: 0, checked: false },
+            { id: 15, name: "Wi-Fi 7 Enterprise Mesh Router", price: 24.20, weight: 1.10, cat: "infrastructure", qty: 0, checked: false },
+            { id: 16, name: "External 4TB Rugged Backup HDD", price: 11.00, weight: 0.30, cat: "infrastructure", qty: 0, checked: false },
+            { id: 17, name: "High-Speed Laser Office Printer", price: 21.05, weight: 14.20, cat: "infrastructure", qty: 0, checked: false },
+            { id: 18, name: "Desktop Document Scanner Attachment", price: 13.50, weight: 2.10, cat: "infrastructure", qty: 0, checked: false },
+            { id: 19, name: "Dual Monitor Gas-Spring Desk Mount", price: 6.50, weight: 4.80, cat: "furniture", qty: 0, checked: false },
+            { id: 20, name: "Steel Mesh Anti-Fatigue Floor Mat", price: 3.50, weight: 2.50, cat: "furniture", qty: 0, checked: false },
+            { id: 21, name: "Adjustable Ergonomic Task Chair", price: 18.90, weight: 19.50, cat: "furniture", qty: 0, checked: false },
+            { id: 22, name: "Premium Leather Executive Seat", price: 22.40, weight: 23.00, cat: "furniture", qty: 0, checked: false },
+            { id: 23, name: "Motorized Dual-Motor Stand Desk", price: 17.00, weight: 32.50, cat: "furniture", qty: 0, checked: false },
+            { id: 24, name: "Solid Oak Conference Table Slab", price: 24.80, weight: 48.00, cat: "furniture", qty: 0, checked: false },
+            { id: 25, name: "Under-Desk Steel File Cabinet Mobile", price: 12.50, weight: 16.00, cat: "furniture", qty: 0, checked: false }
+        ];
+
+        let autoStrategy = "PASS_THROUGH";
+
+        window.onload = function() {
+            renderProductCatalogGrid();
+            recalculateAndSyncMatrix();
+        };
+
+        function renderProductCatalogGrid() {
+            const categories = ["computing", "peripherals", "infrastructure", "furniture"];
+            categories.forEach(c => document.getElementById(`cat-${c}`).innerHTML = "");
+
+            MasterInventory.forEach(prod => {
+                const itemDiv = document.createElement('div');
+                itemDiv.className = `product-item ${prod.checked && prod.qty > 0 ? 'active-selected' : ''}`;
+                itemDiv.id = `prod-card-${prod.id}`;
+                
+                itemDiv.innerHTML = `
+                    <div class="product-top">
+                        <input type="checkbox" class="item-checkbox" id="chk-${prod.id}" ${prod.checked ? 'checked' : ''} onchange="toggleProductCheck(${prod.id})">
+                        <div>
+                            <div class="product-title">${prod.name}</div>
+                            <div class="product-meta">Weight: ${prod.weight.toFixed(2)} kg</div>
+                        </div>
+                    </div>
+                    <div class="product-controls-footer">
+                        <span class="product-price">€${prod.price.toFixed(2)}</span>
+                        <div class="right-interactive-cluster">
+                            <div class="qty-container">
+                                <button class="qty-btn" onclick="modifyProductQty(${prod.id}, -1)">-</button>
+                                <span class="qty-val" id="qty-lbl-${prod.id}">${prod.qty}</span>
+                                <button class="qty-btn" onclick="modifyProductQty(${prod.id}, 1)">+</button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                document.getElementById(`cat-${prod.cat}`).appendChild(itemDiv);
+            });
+        }
+
+        function modifyProductQty(id, delta) {
+            const prod = MasterInventory.find(p => p.id === id);
+            if (!prod) return;
+            prod.qty += delta;
+            if (prod.qty < 0) prod.qty = 0;
+            if (prod.qty > 0 && delta > 0 && !prod.checked) prod.checked = true;
+            if (prod.qty === 0) prod.checked = false;
+
+            document.getElementById(`qty-lbl-${id}`).innerText = prod.qty;
+            document.getElementById(`chk-${id}`).checked = prod.checked;
+            updateCardHighlight(id, prod.checked && prod.qty > 0);
+            
+            recalculateAndSyncMatrix();
+        }
+
+        function toggleProductCheck(id) {
+            const prod = MasterInventory.find(p => p.id === id);
+            if (!prod) return;
+            prod.checked = document.getElementById(`chk-${id}`).checked;
+            if (prod.checked && prod.qty === 0) {
+                prod.qty = 1;
+                document.getElementById(`qty-lbl-${id}`).innerText = prod.qty;
+            }
+            updateCardHighlight(id, prod.checked && prod.qty > 0);
+            
+            recalculateAndSyncMatrix();
+        }
+
+        function updateCardHighlight(id, isSelected) {
+            const card = document.getElementById('prod-card-' + id);
+            if (isSelected) card.classList.add('active-selected');
+            else card.classList.remove('active-selected');
+        }
+
+        function recalculateAndSyncMatrix() {
+            let activeSubtotal = 0;
+            let activeWeight = 0;
+            const banner = document.getElementById('auto-strategy-banner');
+            const currentSLA = document.getElementById('sla').value;
+
+            MasterInventory.forEach(prod => {
+                if (prod.checked && prod.qty > 0) {
+                    activeSubtotal += (prod.price * prod.qty);
+                    activeWeight += (prod.weight * prod.qty);
+                }
+            });
+
+            document.getElementById('display-subtotal').innerText = "€" + activeSubtotal.toFixed(2);
+            document.getElementById('display-weight').innerText = activeWeight.toFixed(2) + " kg";
+
+            const freeShippingThreshold = (currentSLA === "Express") ? 60 : 35;
+            const fill = document.getElementById('tier-progress-fill');
+            const txt = document.getElementById('progress-status-msg');
+            const pct = document.getElementById('progress-percent-msg');
+
+            if(activeSubtotal === 0) {
+                fill.style.width = "0%";
+                txt.innerText = "Basket is empty";
+                pct.innerText = "0%";
+            } else if(activeSubtotal < freeShippingThreshold) {
+                let progressPercent = (activeSubtotal / freeShippingThreshold) * 100;
+                fill.style.width = `${progressPercent}%`;
+                fill.style.backgroundColor = "#f59e0b";
+                txt.innerText = `Spend €${(freeShippingThreshold - activeSubtotal).toFixed(2)} more for Free ${currentSLA} Shipping!`;
+                pct.innerText = `${Math.floor(progressPercent)}%`;
+            } else {
+                fill.style.width = "100%";
+                fill.style.backgroundColor = "#10b981";
+                txt.innerText = `🎉 Free ${currentSLA} shipping unlocked!`;
+                pct.innerText = "100%";
+            }
+
+            if (activeSubtotal === 0) {
+                autoStrategy = "PASS_THROUGH";
+                banner.className = "strategy-banner";
+                banner.innerHTML = "No items selected.";
+                
+                const resultBox = document.getElementById('result');
+                resultBox.className = 'result-box neutral-state';
+                resultBox.innerHTML = '🛋️ Awaiting selection layout input updates...';
+                return; 
+            } else if (currentSLA === "Express") {
+                if (activeSubtotal < 25.00) {
+                    autoStrategy = "PASS_THROUGH";
+                    banner.style.borderLeftColor = "#ef4444";
+                    banner.style.background = "#fef2f2";
+                    banner.innerHTML = "🚀 <strong>Strategy: Premium Pass-Through (Express)</strong> <br><small>Cart < €25. Customer assumes priority courier routing fees.</small>";
+                } else if (activeSubtotal >= 25.00 && activeSubtotal < 60.00) {
+                    autoStrategy = "HYBRID";
+                    banner.style.borderLeftColor = "#3b82f6";
+                    banner.style.background = "#eff6ff";
+                    banner.innerHTML = "⚡ <strong>Strategy: Express Hybrid Active</strong> <br><small>Costs are shared. Free Express triggers at €60.</small>";
+                } else {
+                    autoStrategy = "FREE";
+                    banner.style.borderLeftColor = "#10b981";
+                    banner.style.background = "#f0fdf4";
+                    banner.innerHTML = "🎉 <strong>Strategy: Free Express Bulk Tier</strong> <br><small>Cart ≥ €60 milestone achieved. Store handles priority transport costs.</small>";
+                }
+            } else {
+                if (activeSubtotal < 15.00) {
+                    autoStrategy = "PASS_THROUGH";
+                    banner.style.borderLeftColor = "#f59e0b";
+                    banner.style.background = "#fffbeb";
+                    banner.innerHTML = "⚠️ <strong>Strategy: Economy Pass-Through (Standard)</strong> <br><small>Cart < €15. Standard baseline courier cost appended to customer.</small>";
+                } else if (activeSubtotal >= 15.00 && activeSubtotal < 35.00) {
+                    autoStrategy = "HYBRID";
+                    banner.style.borderLeftColor = "#6366f1";
+                    banner.style.background = "#e0e7ff";
+                    banner.innerHTML = "📦 <strong>Strategy: Standard Hybrid Configuration</strong> <br><small>Free baseline economy tier activates if order crosses €35.</small>";
+                } else {
+                    autoStrategy = "FREE";
+                    banner.style.borderLeftColor = "#10b981";
+                    banner.style.background = "#f0fdf4";
+                    banner.innerHTML = "🎉 <strong>Strategy: Free Standard Shipping Unlocked</strong> <br><small>Cart ≥ €35. Standard distribution costs fully absorbed.</small>";
+                }
+            }
+
+            executeAutomatedRouting(activeWeight, activeSubtotal);
+        }
+
+        async function executeAutomatedRouting(payloadWeight, payloadValue) {
+            const resultBox = document.getElementById('result');
+            const postalCodeInput = document.getElementById('postal_code').value.trim();
+            
+            if (postalCodeInput.length < 5) {
+                resultBox.className = 'result-box error';
+                resultBox.innerHTML = '<h3>📍 Routing Paused</h3><p>Please enter a valid 5-digit destination postal code to trace rates.</p>';
+                return;
+            }
+
+            try {
+                const response = await fetch('http://127.0.0.1:8000/api/v1/route', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        order_id: "AUTO-ORD",
+                        weight_kg: payloadWeight,
+                        postal_code: postalCodeInput,
+                        requested_sla: document.getElementById('sla').value
+                    })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    renderMatrixResult(data, payloadValue, false);
+                } else {
+                    // SAFE ERROR EXTRACTION: Extract error payload cleanly without hitting render Matrix execution errors
+                    if (document.getElementById('sla').value === "Express") {
+                        executeAutomatedFallback(payloadWeight, payloadValue);
+                    } else {
+                        resultBox.className = 'result-box error';
+                        resultBox.innerHTML = `<h3>❌ Engine Rejection</h3><p>${data.detail || 'Fulfillment matching rules missing.'}</p>`;
+                    }
+                }
+            } catch (err) {
+                resultBox.className = 'result-box error';
+                resultBox.innerHTML = `<h3>❌ Syncing Error</h3><p>Connecting to backend API table endpoints failed...</p>`;
+            }
+        }
+
+        async function executeAutomatedFallback(weight, value) {
+            const resultBox = document.getElementById('result');
+            try {
+                const response = await fetch('http://127.0.0.1:8000/api/v1/route', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        order_id: "AUTO-FB",
+                        weight_kg: weight,
+                        postal_code: document.getElementById('postal_code').value,
+                        requested_sla: "Standard"
+                    })
+                });
+                const data = await response.json();
+                if (response.ok) {
+                    renderMatrixResult(data, value, true);
+                } else {
+                    resultBox.className = 'result-box error';
+                    resultBox.innerHTML = `<h3>❌ Comprehensive Path Failure</h3><p>${data.detail || 'No valid carrier configurations exist for this region.'}</p>`;
+                }
+            } catch (err) {
+                resultBox.className = 'result-box error';
+                resultBox.innerHTML = `<h3>❌ Syncing Error</h3><p>Fallback communication line failed.</p>`;
+            }
+        }
+
+        function renderMatrixResult(data, payloadValue, isFallback) {
+            const resultBox = document.getElementById('result');
+            const currentSLA = document.getElementById('sla').value;
+            
+            // SAFE PARSING FALLBACKS: Fallback defaults if keys do not match incoming object shape perfectly
+            let carrierCost = data.calculated_cost ?? 0.00;
+            let assignedCarrier = data.assigned_carrier ?? "Unknown Carrier";
+            let assignedService = data.assigned_service ?? "Standard Service";
+            let customerShippingCharge = 0.00;
+
+            if (autoStrategy === "PASS_THROUGH") {
+                customerShippingCharge = carrierCost;
+            } else if (autoStrategy === "HYBRID" || autoStrategy === "FREE") {
+                const triggerPoint = (currentSLA === "Express") ? 60 : 35;
+                customerShippingCharge = (payloadValue >= triggerPoint) ? 0.00 : carrierCost;
+            }
+
+            resultBox.className = isFallback ? 'result-box fallback-warning' : 'result-box success';
+            
+            let headerHTML = isFallback ? 
+                `<h3 style="margin-top:0;">⚠️ Express Unavailable - Fallback Calculated</h3>` : 
+                `<h3 style="margin-top:0; color:#065f46;">🎯 Live Logistics Path Verified</h3>`;
+
+            resultBox.innerHTML = `
+                ${headerHTML}
+                <p><strong>Assigned Carrier:</strong> <span class="badge" style="${isFallback ? 'background:#f59e0b;' : ''}">${assignedCarrier}</span> — ${assignedService}</p>
+                
+                <div style="background:white; padding:10px; border-radius:6px; margin:12px 0; border:1px solid #cbd5e1; color:#333;">
+                    <h4 style="margin-top:0; border-bottom:1px solid #e2e8f0; padding-bottom:4px; margin-bottom:8px;">🧾 Real-Time Statement Summary</h4>
+                    <div class="invoice-line"><span>Products Subtotal:</span><span>€${payloadValue.toFixed(2)}</span></div>
+                    <div class="invoice-line"><span>Delivery Allocation Fee:</span><span>€${customerShippingCharge.toFixed(2)}</span></div>
+                    <div class="invoice-line" style="font-weight:bold; border-top:1px solid #e2e8f0; padding-top:4px;"><span>Grand Total Charge:</span><span>€${(payloadValue + customerShippingCharge).toFixed(2)}</span></div>
+                </div>
+
+                <div style="background:#f8fafc; padding:10px; border-radius:6px; font-size:11px; color:#475569;">
+                    <strong>📈 Dynamic Account Balances:</strong><br>
+                    • Fulfillment Cost: <span style="color:#b91c1c; font-weight:bold;">-€${carrierCost.toFixed(2)}</span><br>
+                    • Retained Store Margin: <span style="color:#047857; font-weight:bold;">+€${(payloadValue - (customerShippingCharge === 0 ? carrierCost : 0)).toFixed(2)}</span>
+                </div>
+            `;
+        }
+    </script>
+</body>
+</html>
