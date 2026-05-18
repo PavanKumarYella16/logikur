@@ -324,7 +324,7 @@
             }
 
             try {
-                const response = await fetch('http://127.0.0.1:8000/api/v1/route', {
+                const response = await fetch('https://logikur.onrender.com/api/v1/route', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
@@ -340,7 +340,6 @@
                 if (response.ok) {
                     renderMatrixResult(data, payloadValue, false);
                 } else {
-                    // SAFE ERROR EXTRACTION: Extract error payload cleanly without hitting render Matrix execution errors
                     if (document.getElementById('sla').value === "Express") {
                         executeAutomatedFallback(payloadWeight, payloadValue);
                     } else {
@@ -357,7 +356,7 @@
         async function executeAutomatedFallback(weight, value) {
             const resultBox = document.getElementById('result');
             try {
-                const response = await fetch('http://127.0.0.1:8000/api/v1/route', {
+                const response = await fetch('https://logikur.onrender.com/api/v1/route', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
@@ -384,7 +383,6 @@
             const resultBox = document.getElementById('result');
             const currentSLA = document.getElementById('sla').value;
             
-            // SAFE PARSING FALLBACKS: Fallback defaults if keys do not match incoming object shape perfectly
             let carrierCost = data.calculated_cost ?? 0.00;
             let assignedCarrier = data.assigned_carrier ?? "Unknown Carrier";
             let assignedService = data.assigned_service ?? "Standard Service";
